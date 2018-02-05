@@ -1,31 +1,23 @@
 # -*- coding: utf-8 -*-
 import logging
-import re
 
 from bravado_core.exception import SwaggerSchemaError
 from bravado_core.param import Param
 from bravado_core.security_requirement import SecurityRequirement
 from bravado_core.util import cached_property
+from bravado_core.util import sanitize_identifier
 
 log = logging.getLogger(__name__)
 
 
 def _sanitize_operation_id(operation_id, http_method, path_name):
-    def _replace_patterns(op_id):
-        for regex, replacement in (
-                ('[^A-Za-z0-9_]', '_'),  # valid chars for method names
-                ('_+', '_'),  # collapse consecutive _'s
-                ('^_|_$', '')):  # trim leading/trailing _'s
-            op_id = re.compile(regex).sub(replacement, op_id)
-        return op_id
-
-    sanitized_operation_id = _replace_patterns(operation_id or '')
+    sanitized_operation_id = sanitize_identifier(operation_id or '')
 
     # Handle crazy corner cases where someone explictily sets operation
     # id a value that gets sanitized down to an empty string
     if len(sanitized_operation_id) == 0:
         # build based on the http method and request path
-        sanitized_operation_id = _replace_patterns(http_method + '_' + path_name)
+        sanitized_operation_id = sanitize_identifier(http_method + '_' + path_name)
 
     # Handle super crazy corner case where even ``http_method + '_' + path_name``
     # gets sanitized down to an empty string
@@ -180,7 +172,7 @@ def build_params(op):
     params = {}
     for param_spec in params_spec:
         param = Param(swagger_spec, op, deref(param_spec))
-        params[param.name] = param
+        params[param.param_id] = param  # Use valid identifiers.
 
     # Security parameters cannot override and been overridden by operation or path objects
     new_params = {}

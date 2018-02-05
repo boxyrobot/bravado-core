@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import pytest
+
 from bravado_core.operation import build_params
 from bravado_core.operation import Operation
 from bravado_core.spec import Spec
@@ -80,12 +82,19 @@ def test_path_param_only(minimal_swagger_dict):
     assert 'pet_id' in params
 
 
-def test_path_param_and_op_param(minimal_swagger_dict):
+@pytest.mark.parametrize(
+    'op_param_name, path_param_name',
+    [
+        ('pet_id', 'sort_key'),
+        ('pet-id', 'sort-key')
+    ]
+)
+def test_path_param_and_op_param(minimal_swagger_dict, op_param_name, path_param_name):
     op_spec = {
         'operationId': 'get_pet_by_id',
         'parameters': [
             {
-                'name': 'pet_id',
+                'name': op_param_name,
                 'in': 'query',
                 'required': True,
                 'type': 'integer',
@@ -100,7 +109,7 @@ def test_path_param_and_op_param(minimal_swagger_dict):
         'get': op_spec,
         'parameters': [
             {
-                'name': 'sort_key',
+                'name': path_param_name,
                 'in': 'query',
                 'required': False,
                 'type': 'string',

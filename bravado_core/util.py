@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import inspect
+import re
 from functools import wraps
 
 from six import iteritems
@@ -41,3 +42,19 @@ def memoize_by_id(func):
             cache[cache_key] = cached_value
         return cached_value
     return wrapper
+
+
+def sanitize_identifier(name):
+    """Removes all unsupported characters from identifier name.
+
+    :param name: identifier name
+    :type name: string
+    :return: sanitized name
+    :rtype: string
+    """
+    for regex, replacement in (
+            ('[^A-Za-z0-9_]', '_'),  # valid chars for identifier names
+            ('_+', '_'),  # collapse consecutive _'s
+            ('^_|_$', '')):  # trim leading/trailing _'s
+        name = re.compile(regex).sub(replacement, name)
+    return name

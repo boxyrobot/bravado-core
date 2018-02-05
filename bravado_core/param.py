@@ -11,6 +11,7 @@ from bravado_core.content_type import APP_JSON
 from bravado_core.exception import SwaggerMappingError
 from bravado_core.marshal import marshal_schema_object
 from bravado_core.unmarshal import unmarshal_schema_object
+from bravado_core.util import sanitize_identifier
 from bravado_core.validate import validate_schema_object
 
 log = logging.getLogger(__name__)
@@ -49,6 +50,11 @@ class Param(object):
     @property
     def name(self):
         return self.param_spec['name']
+
+    @property
+    def param_id(self):
+        """Parameter name that can be used as valid identifier."""
+        return sanitize_identifier(self.param_spec['name'])
 
     @property
     def location(self):
